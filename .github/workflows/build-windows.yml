@@ -1,0 +1,49 @@
+name: Build Windows - OTX Server  
+  
+on:  
+  push:  
+    branches: [ main, master ]  
+  pull_request:  
+    branches: [ main, master ]  
+  
+jobs:  
+  build:  
+    runs-on: windows-latest  
+      
+    steps:  
+    - name: Checkout code  
+      uses: actions/checkout@v4  
+        
+    - name: Setup MSBuild  
+      uses: microsoft/setup-msbuild@v2  
+        
+    - name: Setup vcpkg  
+      run: |  
+        git clone https://github.com/Microsoft/vcpkg.git  
+        .\vcpkg\bootstrap-vcpkg.bat  
+        echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" >> $GITHUB_ENV  
+          
+    - name: Install dependencies  
+      run: |  
+        .\vcpkg\vcpkg.exe install boost:x64-windows libxml2:x64-windows sqlite3:x64-windows openssl:x64-windows lua:x64-windows mysql-connector-cpp:x64-windows libiconv:x64-windows mpir:x64-windows  
+          
+    - name: Setup environment variables  
+      run: |  
+        echo "BOOST_ROOT=${{ github.workspace }}\vcpkg\installed\x64-windows" >> $GITHUB_ENV  
+        echo "TFSSDKDir=${{ github.workspace }}\vcpkg\installed\x64-windows" >> $GITHUB_ENV  
+        echo "LUA_DIR=${{ github.workspace }}\vcpkg\installed\x64-windows" >> $GITHUB_ENV  
+        echo "LIBXML2_DIR=${{ github.workspace }}\vcpkg\installed\x64-windows" >> $GITHUB_ENV  
+        echo "MYSQLC_DIR=${{ github.workspace }}\vcpkg\installed\x64-windows" >> $GITHUB_ENV  
+        echo "OPENSSL_DIR=${{ github.workspace }}\vcpkg\installed\x64-windows" >> $GITHUB_ENV  
+        echo "SQLITE_DIR=${{ github.workspace }}\vcpkg\installed\x64-windows" >> $GITHUB_ENV  
+        echo "GMP_DIR=${{ github.workspace }}\vcpkg\installed\x64-windows" >> $GITHUB_ENV  
+        echo "LIBICONV_DIR=${{ github.workspace }}\vcpkg\installed\x64-windows" >> $GITHUB_ENV  
+          
+    - name: Build x64 Release  
+      run: msbuild sources/msvc/TheOTXServer.vcxproj /p:Configuration=Release /p:Platform=x64 /p:UseEnv=true  
+        
+    - name: Upload artifacts  
+      uses: actions/upload-artifact@v4  
+      with:  
+        name: otx-server-windows  
+        path: sources/msvc/x64/Release/
