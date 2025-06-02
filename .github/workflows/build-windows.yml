@@ -3,6 +3,8 @@ name: Build Windows - OTX Server
 on:  
   push:  
     branches: [ main, master ]  
+  pull_request:  
+    branches: [ main, master ]  
   
 jobs:  
   build:  
@@ -26,4 +28,10 @@ jobs:
         .\vcpkg\vcpkg.exe install boost:x64-windows libxml2:x64-windows sqlite3:x64-windows openssl:x64-windows lua:x64-windows mysql-connector-cpp:x64-windows libiconv:x64-windows mpir:x64-windows  
           
     - name: Build x64 Release  
-      run: msbuild sources/msvc/TheOTXServer.vcxproj /p:Configuration=Release /p:Platform=x64
+      run: msbuild sources/msvc/TheOTXServer.vcxproj /p:Configuration=Release /p:Platform=x64 /p:WindowsTargetPlatformVersion=10.0.22621.0  
+        
+    - name: Upload artifacts  
+      uses: actions/upload-artifact@v4  
+      with:  
+        name: otx-server-windows  
+        path: sources/msvc/x64/Release/
